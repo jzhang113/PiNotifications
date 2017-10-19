@@ -1,0 +1,25 @@
+﻿<h1>Pi Notifications</h1>
+
+<div *ngIf="notifications">
+    <table class="table table-bordered table table-striped">
+        <thead>
+            <tr>
+                <th>Alarm</th>
+                <th>Start Time</th>
+                <th>Value</th>
+                <th>Event</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr *ngFor="let event of notifications">
+                <td>{{event.active ? 'Active' : ''}}</td>
+                <td>{{event.active ? event.startTime : ''}}</td>
+                <td>{{event.active ? event.value : ''}}</td>
+                <td>{{event.name}}</td>
+            </tr>
+        </tbody>
+    </table>
+    <p *ngFor="let event of notifications">
+        {{event.active}}
+    </p>
+</div>
