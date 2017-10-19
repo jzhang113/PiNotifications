@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace PiNotifications.Models
@@ -13,13 +14,14 @@ namespace PiNotifications.Models
     {
         static string PiWebApiServer = "pi-web-api.facilities.uiowa.edu";
         static string NotificationPath = "%5C%5Cpi-af.facilities.uiowa.edu%5CPIDB-AF%5CNotifications";
-
         static string UrlFormat = "https://{0}/piwebapi/elements?path={1}";
         static string PiBatchRequest = $"https://{PiWebApiServer}/piwebapi/batch";
         static string Selector = "?selectedFields=Items.Name;Items.WebId";
 
         static dynamic notificationRoot;
         static List<AnalysisModel> EventList;
+
+        private static Regex namePattern = new Regex(@".*(?= \d{4}-\d{2}-\d{2})"); // match event frame names up to the date
 
         static NotificationRepository()
         {
@@ -77,7 +79,21 @@ namespace PiNotifications.Models
                 dynamic val = MakeRequest(ev.Links.Value.Value);
                 item.Value = (val.Items[0].Value.Good.Value) ? val.Items[0].Value.Value.Value : null;
 
-                eventList.Add(ev.Name.Value, item);
+                String name = namePattern.Match(ev.Name.Value).Value;
+                EventFrameModel prev;
+
+                if (eventList.TryGetValue(name, out prev))
+                {
+                    // keep the earlier event frame
+                    if (item.StartTime < prev.StartTime)
+                    {
+                        eventList[name] = item;
+                    }
+                }
+                else
+                {
+                    eventList.Add(name, item);
+                }
             }
 
             return eventList;

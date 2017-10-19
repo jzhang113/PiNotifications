@@ -3,8 +3,7 @@ import { Http } from '@angular/http';
 
 @Component({
     selector: 'notification',
-    templateUrl: './notification.component.html',
-    styleUrls: ['./notification.component.css']
+    templateUrl: './notification.component.html'
 })
 export class NotificationComponent {
     public notifications: PiEvent[];
@@ -12,13 +11,8 @@ export class NotificationComponent {
     constructor(http: Http, @Inject('BASE_URL') root:string) {
         http.get(root + '/api/events').subscribe(result => {
             this.notifications = result.json();
-            console.log(this.notifications);
         });
     }
-}
-
-interface Notification {
-    events: PiEvent[];
 }
 
 interface PiEvent {
