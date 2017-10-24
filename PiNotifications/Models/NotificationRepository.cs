@@ -19,14 +19,21 @@ namespace PiNotifications.Models
         static string UrlFormat = "https://{0}/piwebapi/elements?path={1}";
         static string PiBatchRequest = $"https://{PiWebApiServer}/piwebapi/batch";
         static string Selector = "?selectedFields=Items.Name;Items.WebId;";
+        static string EventItemSelector = Selector + "Items.Links.Analyses;Items.Links.EventFrames;";
 
         static string NotificationEventFrames;
         static IDictionary<string, string> BackupGenEventFrames;
-        static ICollection<AnalysisModel> EventList;
+        static IDictionary<string, string> OakdaleEventFrames;
+        static IDictionary<string, string> PiInterfaceEventFrames;
+        static IDictionary<string, string> PPTagEventFrames;
+
+        static ICollection<AnalysisModel> NotificationEventList;
         static ICollection<AnalysisModel> BackupGenEventList;
+        static ICollection<AnalysisModel> OakdaleEventList;
+        static ICollection<AnalysisModel> PiInterfaceEventList;
+        static ICollection<AnalysisModel> PPTagEventList;
 
         private static Regex namePattern = new Regex(@".*(?= \d{4}-\d{2}-\d{2})"); // match event frame names up to the date
-        private static Regex backupGenNamePattern = new Regex(@"(?<=(\\.+))\\Analyses\[.+\]$");
 
         static NotificationRepository()
         {
@@ -49,6 +56,43 @@ namespace PiNotifications.Models
                                 new JArray(
                                     new JValue("$.Notifications.Content.Links.Analyses"))),
                             new JProperty("Resource", "{0}" + Selector))),
+                    new JProperty("Subnotifications",
+                        new JObject(
+                            new JProperty("Method", "GET"),
+                            new JProperty("ParentIds",
+                                new JArray(
+                                    new JValue("Notifications"))),
+                            new JProperty("Resource", "$.Notifications.Content.Links.Elements"))),
+                    new JProperty("OakdaleElements",
+                        new JObject(
+                            new JProperty("Method", "GET"),
+                            new JProperty("ParentIds",
+                                new JArray(
+                                    new JValue("Subnotifications"))),
+                            new JProperty("Parameters",
+                                new JArray(
+                                    new JValue("$.Subnotifications.Content.Items[0].Links.Elements"))),
+                            new JProperty("Resource", "{0}" + EventItemSelector))),
+                    new JProperty("PiInterfaceElements",
+                        new JObject(
+                            new JProperty("Method", "GET"),
+                            new JProperty("ParentIds",
+                                new JArray(
+                                    new JValue("Subnotifications"))),
+                            new JProperty("Parameters",
+                                new JArray(
+                                    new JValue("$.Subnotifications.Content.Items[1].Links.Elements"))),
+                            new JProperty("Resource", "{0}" + EventItemSelector))),
+                    new JProperty("PPTagElements",
+                        new JObject(
+                            new JProperty("Method", "GET"),
+                            new JProperty("ParentIds",
+                                new JArray(
+                                    new JValue("Subnotifications"))),
+                            new JProperty("Parameters",
+                                new JArray(
+                                    new JValue("$.Subnotifications.Content.Items[2].Links.Elements"))),
+                            new JProperty("Resource", "{0}" + EventItemSelector))),
                     new JProperty("BackupGenRoot",
                         new JObject(
                             new JProperty("Method", "GET"),
@@ -62,46 +106,52 @@ namespace PiNotifications.Models
                             new JProperty("Parameters",
                                 new JArray(
                                     new JValue("$.BackupGenRoot.Content.Links.Elements"))),
-                            new JProperty("Resource", "{0}" + Selector + "Items.Links.Analyses;Items.Links.EventFrames;"))));
+                            new JProperty("Resource", "{0}" + EventItemSelector))));
 
             dynamic notificationData = MakePostRequest(request.ToString());
+
             NotificationEventFrames = notificationData["Notifications"].Content.Links.EventFrames.Value;
+            NotificationEventList = new List<AnalysisModel>();
 
-            BackupGenEventFrames = new Dictionary<string, string>();
-            foreach (dynamic elements in notificationData["BackupGenElements"].Content.Items)
-            {
-                BackupGenEventFrames.Add(elements.Name.Value, elements.Links.EventFrames.Value);
-            }
-
-            EventList = new List<AnalysisModel>();
             foreach (dynamic analysis in notificationData["Analyses"].Content.Items)
             {
-                EventList.Add(new AnalysisModel
+                NotificationEventList.Add(new AnalysisModel
                 {
                     Name = analysis.Name.Value,
                     Id = analysis.WebId.Value
                 });
             }
 
-            /**
-             * ,
-                    new JProperty("BackupGenAnalyses",
-                        new JObject(
-                            new JProperty("Method", "GET"),
-                            new JProperty("ParentIds",
-                                new JArray(
-                                    new JValue("BackupGenElements"))),
-                            new JProperty("Parameters",
-                                new JArray(
-                                    new JValue("$.BackupGenElements.Content.Items[*].Links.Analyses"))),
-                            new JProperty("RequestTemplate",
-                                new JObject(
-                                    new JProperty("Resource", "{0}" + "?selectedFields=Items.Name;Items.WebId;Items.Path;Items.AnalysisRulePlugInName;")))))
-             * */
-            
+            BackupGenEventFrames = FillEventFrames(notificationData, "BackupGenElements");
+            BackupGenEventList = FillEventList(notificationData, "BackupGenElements");
 
-            BackupGenEventList = new List<AnalysisModel>();
-            foreach (dynamic item in notificationData["BackupGenElements"].Content.Items)
+            OakdaleEventFrames = FillEventFrames(notificationData, "OakdaleElements");
+            OakdaleEventList = FillEventList(notificationData, "OakdaleElements");
+
+            PiInterfaceEventFrames = FillEventFrames(notificationData, "PiInterfaceElements");
+            PiInterfaceEventList = FillEventList(notificationData, "PiInterfaceElements");
+
+            PPTagEventFrames = FillEventFrames(notificationData, "PPTagElements");
+            PPTagEventList = FillEventList(notificationData, "PPTagElements");
+        }
+
+        private static IDictionary<string, string> FillEventFrames(dynamic notificationData, string itemName)
+        {
+            IDictionary<string, string> eventFrames = new Dictionary<string, string>();
+
+            foreach (dynamic elements in notificationData[itemName].Content.Items)
+            {
+                eventFrames.Add(elements.Name.Value, elements.Links.EventFrames.Value);
+            }
+
+            return eventFrames;
+        }
+
+        private static IEnumerable<AnalysisModel> FillEventList(dynamic notificationData, string itemName)
+        {
+            ICollection<AnalysisModel> eventList = new List<AnalysisModel>();
+
+            foreach (dynamic item in notificationData[itemName].Content.Items)
             {
                 string elementName = item.Name.Value;
                 dynamic obj = MakeRequest(item.Links.Analyses.Value + Selector + "Items.AnalysisRulePlugInName");
@@ -110,7 +160,7 @@ namespace PiNotifications.Models
                 {
                     if (analysis.AnalysisRulePlugInName.Value.Equals("EventFrame"))
                     {
-                        BackupGenEventList.Add(new AnalysisModel
+                        eventList.Add(new AnalysisModel
                         {
                             Name = elementName + " " + analysis.Name.Value,
                             Id = analysis.WebId.Value
@@ -118,6 +168,8 @@ namespace PiNotifications.Models
                     }
                 }
             }
+
+            return eventList;
         }
         
         // Get the current active event frames. An event frame is considered active when it has an end date of 9999
@@ -137,7 +189,7 @@ namespace PiNotifications.Models
                 };
 
                 dynamic val = MakeRequest(ev.Links.Value.Value);
-                item.Value = (val.Items[0].Value.Good.Value) ? val.Items[0].Value.Value.Value : null;
+                item.Value = (val.Items[0].Value.Good.Value) ? val.Items[0].Value.Value.Value : val.Items[0].Value.Value.Name.Value;
 
                 String name = namePattern.Match(ev.Name.Value).Value;
                 EventFrameModel prev;
@@ -161,9 +213,29 @@ namespace PiNotifications.Models
 
         public IDictionary<string, EventFrameModel> GetActiveBackupGenEvents()
         {
+            return ProcessActiveEvents(BackupGenEventFrames);
+        }
+
+        public IDictionary<string, EventFrameModel> GetActiveOakdaleEvents()
+        {
+            return ProcessActiveEvents(OakdaleEventFrames);
+        }
+
+        public IDictionary<string, EventFrameModel> GetActivePiInterfaceEvents()
+        {
+            return ProcessActiveEvents(PiInterfaceEventFrames);
+        }
+
+        public IDictionary<string, EventFrameModel> GetActivePPTagEvents()
+        {
+            return ProcessActiveEvents(PPTagEventFrames);
+        }
+
+        private static IDictionary<string, EventFrameModel> ProcessActiveEvents(IDictionary<string, string> elementEventFrames)
+        {
             IDictionary<string, EventFrameModel> eventList = new Dictionary<string, EventFrameModel>();
 
-            foreach (KeyValuePair<string, string> entry in BackupGenEventFrames)
+            foreach (KeyValuePair<string, string> entry in elementEventFrames)
             {
                 dynamic eventFrames = MakeRequest(entry.Value + "?searchMode=BackwardInProgress&startTime=*-5s");
 
@@ -178,7 +250,7 @@ namespace PiNotifications.Models
                     };
 
                     dynamic val = MakeRequest(ev.Links.Value.Value);
-                    item.Value = (val.Items[0].Value.Good.Value) ? val.Items[0].Value.Value.Value : val.Items[0].Value.Value.Name.Value;
+                    item.Value = (val.Items[0].Value.Good.Value) ? val.Items[0].Value.Value.Value : "Error";
 
                     String name = entry.Key + " " + namePattern.Match(ev.Name.Value).Value;
                     EventFrameModel prev;
@@ -203,12 +275,27 @@ namespace PiNotifications.Models
 
         public IEnumerable<AnalysisModel> GetAllEvents()
         {
-            return EventList;
+            return NotificationEventList;
         }
 
         public IEnumerable<AnalysisModel> GetAllBackupGenEvents()
         {
             return BackupGenEventList;
+        }
+
+        public IEnumerable<AnalysisModel> GetAllOakdaleEvents()
+        {
+            return OakdaleEventList;
+        }
+
+        public IEnumerable<AnalysisModel> GetAllPiInterfaceEvents()
+        {
+            return PiInterfaceEventList;
+        }
+
+        public IEnumerable<AnalysisModel> GetAllPPTagEvents()
+        {
+            return PPTagEventList;
         }
 
         // Return a dynamic object representing the JSON data from the given post request

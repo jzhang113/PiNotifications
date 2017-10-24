@@ -4,9 +4,16 @@ namespace PiNotifications.Models
 {
     public interface INotificationRepository
     {
-        IDictionary<string, EventFrameModel> GetActiveEvents();
         IEnumerable<AnalysisModel> GetAllEvents();
-        IDictionary<string, EventFrameModel> GetActiveBackupGenEvents();
         IEnumerable<AnalysisModel> GetAllBackupGenEvents();
+        IEnumerable<AnalysisModel> GetAllOakdaleEvents();
+        IEnumerable<AnalysisModel> GetAllPiInterfaceEvents();
+        IEnumerable<AnalysisModel> GetAllPPTagEvents();
+
+        IDictionary<string, EventFrameModel> GetActiveEvents();
+        IDictionary<string, EventFrameModel> GetActiveBackupGenEvents();
+        IDictionary<string, EventFrameModel> GetActiveOakdaleEvents();
+        IDictionary<string, EventFrameModel> GetActivePiInterfaceEvents();
+        IDictionary<string, EventFrameModel> GetActivePPTagEvents();
     }
 }

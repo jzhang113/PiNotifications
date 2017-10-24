@@ -26,6 +26,9 @@
 
   <ItemGroup>
     <TypeScriptCompile Include="ClientApp\app\components\backupgen\backupgen.component.ts" />
+    <TypeScriptCompile Include="ClientApp\app\components\interface\interface.component.ts" />
+    <TypeScriptCompile Include="ClientApp\app\components\pptag\pptag.component.ts" />
+    <TypeScriptCompile Include="ClientApp\app\components\oakdale\oakdale.component.ts" />
     <TypeScriptCompile Include="ClientApp\app\components\notification\notification.component.ts" />
   </ItemGroup>
 

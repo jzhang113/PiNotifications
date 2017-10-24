@@ -32,6 +32,33 @@ namespace PiNotifications.Controllers
             return ProcessEvents(events, active);
         }
 
+        [Route("oakdale")]
+        [HttpGet]
+        public IEnumerable<EventModel> GetOakdale()
+        {
+            IEnumerable<AnalysisModel> events = _repository.GetAllOakdaleEvents();
+            IDictionary<string, EventFrameModel> active = _repository.GetActiveOakdaleEvents();
+            return ProcessEvents(events, active);
+        }
+
+        [Route("interface")]
+        [HttpGet]
+        public IEnumerable<EventModel> GetInterface()
+        {
+            IEnumerable<AnalysisModel> events = _repository.GetAllPiInterfaceEvents();
+            IDictionary<string, EventFrameModel> active = _repository.GetActivePiInterfaceEvents();
+            return ProcessEvents(events, active);
+        }
+
+        [Route("pptag")]
+        [HttpGet]
+        public IEnumerable<EventModel> GetPPTag()
+        {
+            IEnumerable<AnalysisModel> events = _repository.GetAllPPTagEvents();
+            IDictionary<string, EventFrameModel> active = _repository.GetActivePPTagEvents();
+            return ProcessEvents(events, active);
+        }
+
         private static ICollection<EventModel> ProcessEvents(IEnumerable<AnalysisModel> events, IDictionary<string, EventFrameModel> active)
         {
             System.Diagnostics.Stopwatch timer = new System.Diagnostics.Stopwatch();

@@ -7,8 +7,12 @@ import { RouterModule } from '@angular/router';
 import { AppComponent } from './components/app/app.component';
 import { NavMenuComponent } from './components/navmenu/navmenu.component';
 import { HomeComponent } from './components/home/home.component';
+
 import { NotificationComponent } from './components/notification/notification.component';
-import { BackupGenComponent } from './components/backupgen/backup.component';
+import { BackupGenComponent } from './components/backupgen/backupgen.component';
+import { OakdaleComponent } from './components/oakdale/oakdale.component';
+import { InterfaceComponent } from './components/interface/interface.component';
+import { PPTagComponent } from './components/pptag/pptag.component';
 
 @NgModule({
     bootstrap: [ AppComponent ],
@@ -17,7 +21,10 @@ import { BackupGenComponent } from './components/backupgen/backup.component';
         NavMenuComponent,
         HomeComponent,
         NotificationComponent,
-        BackupGenComponent
+        BackupGenComponent,
+        OakdaleComponent,
+        InterfaceComponent,
+        PPTagComponent
     ],
     imports: [
         CommonModule,
@@ -28,6 +35,9 @@ import { BackupGenComponent } from './components/backupgen/backup.component';
             { path: 'home', component: HomeComponent },
             { path: 'notification', component: NotificationComponent },
             { path: 'backup', component: BackupGenComponent },
+            { path: 'oakdale', component: OakdaleComponent },
+            { path: 'interface', component: InterfaceComponent },
+            { path: 'pptag', component: PPTagComponent },
             { path: '**', redirectTo: 'home' }
         ])
     ]
