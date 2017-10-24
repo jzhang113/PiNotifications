@@ -6,5 +6,7 @@ namespace PiNotifications.Models
     {
         IDictionary<string, EventFrameModel> GetActiveEvents();
         IEnumerable<AnalysisModel> GetAllEvents();
+        IDictionary<string, EventFrameModel> GetActiveBackupGenEvents();
+        IEnumerable<AnalysisModel> GetAllBackupGenEvents();
     }
 }

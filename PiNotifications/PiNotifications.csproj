@@ -25,6 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <TypeScriptCompile Include="ClientApp\app\components\backupgen\backupgen.component.ts" />
     <TypeScriptCompile Include="ClientApp\app\components\notification\notification.component.ts" />
   </ItemGroup>
 

@@ -9,7 +9,7 @@ export class NotificationComponent {
     public notifications: PiEvent[];
 
     constructor(http: Http, @Inject('BASE_URL') root:string) {
-        http.get(root + '/api/events').subscribe(result => {
+        http.get(root + '/api/events/').subscribe(result => {
             this.notifications = result.json();
         });
     }

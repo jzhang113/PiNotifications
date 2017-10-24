@@ -8,6 +8,7 @@ import { AppComponent } from './components/app/app.component';
 import { NavMenuComponent } from './components/navmenu/navmenu.component';
 import { HomeComponent } from './components/home/home.component';
 import { NotificationComponent } from './components/notification/notification.component';
+import { BackupGenComponent } from './components/backupgen/backup.component';
 
 @NgModule({
     bootstrap: [ AppComponent ],
@@ -15,7 +16,8 @@ import { NotificationComponent } from './components/notification/notification.co
         AppComponent,
         NavMenuComponent,
         HomeComponent,
-        NotificationComponent
+        NotificationComponent,
+        BackupGenComponent
     ],
     imports: [
         CommonModule,
@@ -25,6 +27,7 @@ import { NotificationComponent } from './components/notification/notification.co
             { path: '', redirectTo: 'home', pathMatch: 'full' },
             { path: 'home', component: HomeComponent },
             { path: 'notification', component: NotificationComponent },
+            { path: 'backup', component: BackupGenComponent },
             { path: '**', redirectTo: 'home' }
         ])
     ]
