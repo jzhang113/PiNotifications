@@ -177,36 +177,7 @@ namespace PiNotifications.Models
         {
             IDictionary<string, EventFrameModel> eventList = new Dictionary<string, EventFrameModel>();
             dynamic eventFrames = MakeRequest(NotificationEventFrames + "?searchMode=BackwardInProgress&startTime=*-5s");
-
-            foreach (dynamic ev in eventFrames.Items)
-            {
-                EventFrameModel item = new EventFrameModel()
-                {
-                    Name = ev.Name.Value,
-                    Id = ev.Id.Value,
-                    StartTime = ev.StartTime.Value.ToLocalTime(),
-                    EndTime = ev.EndTime.Value.ToLocalTime()
-                };
-
-                dynamic val = MakeRequest(ev.Links.Value.Value);
-                item.Value = (val.Items[0].Value.Good.Value) ? val.Items[0].Value.Value.Value : val.Items[0].Value.Value.Name.Value;
-
-                String name = namePattern.Match(ev.Name.Value).Value;
-                EventFrameModel prev;
-
-                if (eventList.TryGetValue(name, out prev))
-                {
-                    // keep the earlier event frame
-                    if (item.StartTime < prev.StartTime)
-                    {
-                        eventList[name] = item;
-                    }
-                }
-                else
-                {
-                    eventList.Add(name, item);
-                }
-            }
+            AddToEventList(eventFrames, eventList);
 
             return eventList;
         }
@@ -238,39 +209,52 @@ namespace PiNotifications.Models
             foreach (KeyValuePair<string, string> entry in elementEventFrames)
             {
                 dynamic eventFrames = MakeRequest(entry.Value + "?searchMode=BackwardInProgress&startTime=*-5s");
-
-                foreach (dynamic ev in eventFrames.Items)
-                {
-                    EventFrameModel item = new EventFrameModel()
-                    {
-                        Name = ev.Name.Value,
-                        Id = ev.Id.Value,
-                        StartTime = ev.StartTime.Value.ToLocalTime(),
-                        EndTime = ev.EndTime.Value.ToLocalTime()
-                    };
-
-                    dynamic val = MakeRequest(ev.Links.Value.Value);
-                    item.Value = (val.Items[0].Value.Good.Value) ? val.Items[0].Value.Value.Value : "Error";
-
-                    String name = entry.Key + " " + namePattern.Match(ev.Name.Value).Value;
-                    EventFrameModel prev;
-
-                    if (eventList.TryGetValue(name, out prev))
-                    {
-                        // keep the earlier event frame
-                        if (item.StartTime < prev.StartTime)
-                        {
-                            eventList[name] = item;
-                        }
-                    }
-                    else
-                    {
-                        eventList.Add(name, item);
-                    }
-                }
+                AddToEventList(eventFrames, eventList, entry.Key);
             }
 
             return eventList;
+        }
+
+        private static void AddToEventList(dynamic eventData, IDictionary<string, EventFrameModel> eventList, string namePrefix = "")
+        {
+            foreach (dynamic ev in eventData.Items)
+            {
+                EventFrameModel item = new EventFrameModel()
+                {
+                    Name = ev.Name.Value,
+                    Id = ev.Id.Value,
+                    StartTime = ev.StartTime.Value.ToLocalTime(),
+                    EndTime = ev.EndTime.Value.ToLocalTime()
+                };
+
+                dynamic val = MakeRequest(ev.Links.Value.Value);
+                try
+                {
+                    item.Value = (val.Items[0].Value.Good.Value) ? val.Items[0].Value.Value.Value : val.Items[0].Value.Value.Name.Value;
+                }
+                catch
+                {
+                    item.Value = "Error";
+                }
+
+                String name = namePattern.Match(ev.Name.Value).Value;
+                if (!namePrefix.Equals(""))
+                    name = namePrefix + " " + name;
+
+                EventFrameModel prev;
+                if (eventList.TryGetValue(name, out prev))
+                {
+                    // keep the earlier event frame
+                    if (item.StartTime < prev.StartTime)
+                    {
+                        eventList[name] = item;
+                    }
+                }
+                else
+                {
+                    eventList.Add(name, item);
+                }
+            }
         }
 
         public IEnumerable<AnalysisModel> GetAllEvents()

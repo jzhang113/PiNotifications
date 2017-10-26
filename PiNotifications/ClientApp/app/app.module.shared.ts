@@ -6,8 +6,6 @@ import { RouterModule } from '@angular/router';
 
 import { AppComponent } from './components/app/app.component';
 import { NavMenuComponent } from './components/navmenu/navmenu.component';
-import { HomeComponent } from './components/home/home.component';
-
 import { NotificationComponent } from './components/notification/notification.component';
 import { BackupGenComponent } from './components/backupgen/backupgen.component';
 import { OakdaleComponent } from './components/oakdale/oakdale.component';
@@ -19,7 +17,6 @@ import { PPTagComponent } from './components/pptag/pptag.component';
     declarations: [
         AppComponent,
         NavMenuComponent,
-        HomeComponent,
         NotificationComponent,
         BackupGenComponent,
         OakdaleComponent,
@@ -31,14 +28,13 @@ import { PPTagComponent } from './components/pptag/pptag.component';
         HttpModule,
         FormsModule,
         RouterModule.forRoot([
-            { path: '', redirectTo: 'home', pathMatch: 'full' },
-            { path: 'home', component: HomeComponent },
+            { path: '', redirectTo: 'notification', pathMatch: 'full' },
             { path: 'notification', component: NotificationComponent },
             { path: 'backup', component: BackupGenComponent },
             { path: 'oakdale', component: OakdaleComponent },
             { path: 'interface', component: InterfaceComponent },
             { path: 'pptag', component: PPTagComponent },
-            { path: '**', redirectTo: 'home' }
+            { path: '**', redirectTo: 'notification' }
         ])
     ]
 })
